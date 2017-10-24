@@ -4,6 +4,7 @@ from cryptoClasses.shiftCypher import ShiftCypher
 from cryptoClasses.affineCypher import AffineCypher
 from cryptoClasses.subCypher import subCypher
 from cryptoClasses.vigenereCypher import vigenereCypher
+from cryptoClasses.binaryCyphers import binaryCyphers
 from sympy.crypto.crypto import encipher_hill, decipher_hill #sympy is not part of the default Python install. This needs to be installed with PIP3.
 from sympy import Matrix, pprint
 
@@ -28,7 +29,10 @@ class Menu:
             "13": self.decypherHill,
             "14": self.bruteSub,
             "15": self.bruteHill,
-            "16": self.quit
+            "16": self.binaryVigenere,
+            "17": self.encryptVegBinary,
+            "18": self.decryptVegBinary,
+            "19": self.quit
                 }
 
     #Function:          displayMenu
@@ -40,12 +44,12 @@ class Menu:
         print('''
 Cypher Toolkit Menu
 
-1. Shift Cypher                     7. Substitution Encrypt         13. Decypher Hill
+1. Shift Cypher                     7. Substitution Encrypt         13. Decypher Hill                       19. Quit
 2. Encrypt with an Affine Cypher    8. Calculate Keyword Length     14. Brute Sub Cypher
 3. Decrypt with an Affine Cypher    9. Calculate Key for Vigenere   15. Brute Hill
-4. Letter Counter                   10. Encrypt Vigenere            16. Quit
-5. Frequency Counter                11. Decrypt Vigenere
-6. Substitution Decrypt             12. Encypher Hill
+4. Letter Counter                   10. Encrypt Vigenere            16. Binary Vigenere
+5. Frequency Counter                11. Decrypt Vigenere            17. Encrypt Vigenere Binary from text
+6. Substitution Decrypt             12. Encypher Hill               18. Decrypt Vigenere Binary from binary
 ''')
     
     #Function:          run
@@ -63,6 +67,67 @@ Cypher Toolkit Menu
 
             else:
                 print("\n%s is not a valid choice." %choice)
+
+    #Decrypt a binary string using the Vigenere Binary Cypher
+    def decryptVegBinary(self):
+        binC = binaryCyphers()
+        file = input("Please enter the name of the file that contains the binary to decrypt: ")
+        key = input("Please enter the key (no spaces): ")
+        binary = ''
+
+        try:
+            with open(file, 'r') as f:
+                binary = f.read()
+
+        except IOError as e:
+            print('Unable to open %s' %file)
+            Menu().run()
+        
+
+
+        text = binC.binaryVigenere(key, binary)
+
+        print(binC.convertBinaryChar(text))
+
+    #Encrypt a string using the Vigenere binary cypher
+    def encryptVegBinary(self):
+        binC = binaryCyphers()
+        file = input("Please enter the name of the file that contains the text to encrypt: ")
+        key = input("Please enter the key (no spaces): ")
+        text = ''
+
+        try:
+            with open(file, 'r') as f:
+                text = f.read()
+
+        except IOError as e:
+            print('Unable to open %s' %file)
+            Menu().run()
+
+        binary = str(binC.convertCharBinary(text))
+
+        print(binC.binaryVigenere(key, binary))
+
+
+    #Encrypt/decrypt for a binary vigenere
+    def binaryVigenere(self):
+        binC = binaryCyphers()
+        file = input("Please enter the name of the file that contains the binary to encrypt/decrypt: ")
+        key = input("Please enter the key (no spaces): ")
+        text = ''
+
+        try:
+            with open(file, 'r') as f:
+                text = f.read()
+
+        except IOError as e:
+            print('Unable to open %s' %file)
+            Menu().run()
+
+        out = binC.binaryVigenere(key, text)
+
+        print(out)
+
 
     #Brute Sub Cypher using ngrams
 
