@@ -1,6 +1,4 @@
 import sys, re
-import binascii
-
 
 class binaryCyphers:
 
