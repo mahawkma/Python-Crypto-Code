@@ -15,8 +15,8 @@ remainder = 0
 output = []
 ceiling = 0
 count = 2
-sqrt = math.sqrt(num)
-ceiling = math.ceil(sqrt)
+ceiling = math.ceil(math.sqrt(num))
+
 print('ceiling is %d'%ceiling)
 
 while count < ceiling + 1:
@@ -26,6 +26,7 @@ while count < ceiling + 1:
             remainder = int(num/count)
             print('factor = %d remainder = %d'%(factor,remainder))
             num = remainder
+            ceiling = math.ceil(math.sqrt(num))
             output.append(factor)
             count = 2
 
