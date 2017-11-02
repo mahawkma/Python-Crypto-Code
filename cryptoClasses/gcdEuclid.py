@@ -24,7 +24,7 @@ def ext_euclid(a,b):
     while b != 0:
         a, b, s, t, u, v = b, a % b, u, v, s - ( a // b ) * u, t - ( a // b ) * v 
 
-    #return a, x, y, u, v
+    #return a, s, t, u, v
 
     print('%d*%d + %d*%d = %d'%(A,s,B,t,gcdIter(A,B)))
 
