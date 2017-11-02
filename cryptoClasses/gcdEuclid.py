@@ -9,7 +9,7 @@ def gcdIter(a, b):
 def ext_euclid(a,b):
     """Extended Euclid's algorithm for GCD.
     Given input a, b the function returns d such that gcd(a,b) = d
-    and x, y such that ax + by = d, as well as u, v such that au = bv.""" 
+    and s, t such that as + bt = d, as well as u, v such that au = bv.""" 
 
     if a < b:
         a, b = b, a 
