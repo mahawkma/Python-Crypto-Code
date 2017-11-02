@@ -17,14 +17,14 @@ ceiling = 0
 count = 2
 ceiling = math.ceil(math.sqrt(num))
 
-print('ceiling is %d'%ceiling)
+#print('ceiling is %d'%ceiling)
 
 while count < ceiling + 1:
     if isPrime(count):
         if num%count == 0:
             factor = count
             remainder = int(num/count)
-            print('factor = %d remainder = %d'%(factor,remainder))
+            #print('factor = %d remainder = %d'%(factor,remainder))
             num = remainder
             ceiling = math.ceil(math.sqrt(num))
             output.append(factor)
@@ -52,6 +52,6 @@ for x in range(0, len(output)):
     if x < len(output):
         print('%d '%output[x], end='')
 
-print('\n')
+print('')
 
 
