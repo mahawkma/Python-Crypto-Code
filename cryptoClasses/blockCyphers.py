@@ -15,6 +15,7 @@ class blockCyphers:
 
         return binaryList
 
+    #Calculate the t values for the computation using the block, its key, and the inverse value
     def tValues(self, block, key, inverse):
 
         bc = blockCyphers()
@@ -47,6 +48,7 @@ class blockCyphers:
 
         return t
 
+    #Calculate the u values given the blockm the t values, and the inverse value
     def uValues(self, block, t, inverse):
 
         u = []
@@ -60,6 +62,7 @@ class blockCyphers:
 
         return u
 
+    #Compute the encryped or decrypted message given the block, the key, and the inverse value
     def compute(self, block, key, inverse):
 
         E = []
@@ -92,7 +95,7 @@ class blockCyphers:
         mode = int(input('Please enter 1 fof block mode, 2 for CBC mode, & 3 for CFB mode: '))
         bc = blockCyphers()
 
-        if mode == 1:
+        if mode == 1: #Block Mode
             bString = input('Please enter 4 bit block: ')
             kString = input('Please enter the 3 bit key: ')
             Round = int(input('Please enther the number of rounds: '))
@@ -112,7 +115,7 @@ class blockCyphers:
 
             print(block)
 
-        elif mode == 2:
+        elif mode == 2: #CBC Mode
             bString = input('Please enter input binary string: ')
             kString = input('Please enter the 3 bit key: ')
             inverse = int(input('Please enter 1 for non-inverse and 0 for inverse: '))
@@ -190,14 +193,14 @@ class blockCyphers:
                     for i in range(Round):
                         inv = bc.compute(inv, key, inverse)
 
-                    print('inverse = ' + str(inv))
-                    print('temp = ' + str(temp))
+                    #print('inverse = ' + str(inv))
+                    #print('temp = ' + str(temp))
 
                     for k in range(4):
                         inv[k] = inv[k] ^ temp[k]
 
-                    print('x out = ' + str(inv))
-                    print('\n')
+                    #print('x out = ' + str(inv))
+                    #print('\n')
 
 
                     for i in range(4):
@@ -210,7 +213,7 @@ class blockCyphers:
 
                 print(out)
 
-        else:
+        else: #CFB Mode
             bString = input('Please enter input the m bit text blocks: ')
             kString = input('Please enter the 3 bit key: ')
             init = input('Please enter the initialization block: ')

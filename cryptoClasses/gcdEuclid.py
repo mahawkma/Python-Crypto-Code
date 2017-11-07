@@ -1,11 +1,13 @@
 import sys
 
+#Iteratiive Euclidian Algorithm
 def gcdIter(a, b):
     if b == 0:
         return a
     else:
         return gcdIter(b, a % b)
 
+#Extended Euclidian Alogorithm
 def ext_euclid(a,b):
     """Extended Euclid's algorithm for GCD.
     Given input a, b the function returns d such that gcd(a,b) = d

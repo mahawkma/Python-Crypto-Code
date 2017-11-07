@@ -1,5 +1,6 @@
 import math
 
+#Checks if the passed integer is prime
 def isPrime(num):
 
     for i in range(2,math.ceil(math.sqrt(num))):
@@ -15,29 +16,31 @@ remainder = 0
 output = []
 ceiling = 0
 count = 2
-ceiling = math.ceil(math.sqrt(num))
-
+#Finds the max number to check up to based on the the highest number that will be a factor is the sqrt of the number
+ceiling = math.ceil(math.sqrt(num)) 
 #print('ceiling is %d'%ceiling)
 
+#Count up to the ceiling
 while count < ceiling + 1:
-    if isPrime(count):
-        if num%count == 0:
+    if isPrime(count): #If the number is prime check to see if it is a factor
+
+        if num%count == 0: #If count is a factor
             factor = count
             remainder = int(num/count)
             #print('factor = %d remainder = %d'%(factor,remainder))
             num = remainder
             ceiling = math.ceil(math.sqrt(num))
             output.append(factor)
-            count = 2
+            count = 2 #start the count over again
 
         else:
-            count += 1
+            count += 1 #if not, increase the count
 
     else:
         count += 1
             
 
-if len(output) == 0:
+if len(output) == 0: #if nothing has been appended to the list, the number is prime
     print('%s is prime'%original)
     exit(0)
 

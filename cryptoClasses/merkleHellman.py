@@ -2,11 +2,13 @@ import sys, re
 
 class merkleHellman:
 
+    #Given a number and a modulus, will return the inverse of that pair if they are relatively prime
     def inverseMod(self, a, m):
         for i in range(1,m):
             if ( m*i + 1) % a == 0:
                 return ( m*i + 1) // a
 
+    #Determines is a sequence is super increasing. If it is it returns True else it returns False
     def superIncreasing(self, nums):
         sum = 0
 
@@ -18,6 +20,7 @@ class merkleHellman:
 
         return True
 
+    #Create the public key given the sequence, prime, and multiple
     def publicKey(self, nums, prime, mult):
         out = []
 
@@ -26,29 +29,29 @@ class merkleHellman:
 
         return out
 
+    #Decrypt the numerical message given the message, the sequence, the prime, and the multiple
     def decryptMH(self, decode, nums, prime, mult):
 
         mh = merkleHellman()
-        inverse = mh.inverseMod(mult, prime)
-        out = [0]*len(nums)
-        sum = 0
-        print('Inverse = %d'%inverse)
-        message = (inverse*decode)%prime
-        print('Inverse message: %d'%message)
+        inverse = mh.inverseMod(mult, prime) #Determine the inverse
+        out = [0]*len(nums) #Create the output list with the appropriate size
+        #print('Inverse = %d'%inverse)
+        message = (inverse*decode)%prime #Decode the numerical message
+        #print('Inverse message: %d'%message)
 
-        for x in range(len(nums) - 1, -1, -1):
-            print('For this loop x = %d and seq = %d'%(x, nums[x]))
+        for x in range(len(nums) - 1, -1, -1): #Go through the sequence backwards
+            #print('For this loop x = %d and seq = %d'%(x, nums[x]))
 
-            if nums[x] <= message:
+            if nums[x] <= message: #If the seq number at this position is equal to or less than the message, write to output and reduce the message by the sew number
                 out[x] = 1
                 message = message - nums[x]
 
-            else:
+            else: #If the seq number is larger, do nothing
                 out[x] = 0
 
-            print('message = %d'%message)
+            #print('message = %d'%message)
 
-            if message == 0:
+            if message == 0: #break out of the loop once the message has been finished being decoded
                 break
 
         return out
