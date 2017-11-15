@@ -3,7 +3,7 @@ import math
 #Checks if the passed integer is prime
 def isPrime(num):
 
-    for i in range(2,math.ceil(math.sqrt(num))):
+    for i in range(2,math.ceil(math.sqrt(num)) + 1):
         if (num % i) == 0:
             return False
     

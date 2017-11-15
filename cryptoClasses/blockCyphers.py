@@ -92,7 +92,7 @@ class blockCyphers:
             return D
 
     def run(self):
-        mode = int(input('Please enter 1 fof block mode, 2 for CBC mode, & 3 for CFB mode: '))
+        mode = int(input('Please enter 1 for block mode, 2 for CBC mode, & 3 for CFB mode: '))
         bc = blockCyphers()
 
         if mode == 1: #Block Mode

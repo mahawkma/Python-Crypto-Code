@@ -42,7 +42,8 @@ class merkleHellman:
         for x in range(len(nums) - 1, -1, -1): #Go through the sequence backwards
             #print('For this loop x = %d and seq = %d'%(x, nums[x]))
 
-            if nums[x] <= message: #If the seq number at this position is equal to or less than the message, write to output and reduce the message by the sew number
+            if nums[x] <= message: '''If the seq number at this position is equal to or less than the message, 
+                                    write to output and reduce the message by the seq number'''
                 out[x] = 1
                 message = message - nums[x]
 
