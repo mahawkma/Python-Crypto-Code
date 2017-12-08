@@ -70,8 +70,14 @@ class AffineCypher:
     def run(self):
         affine = AffineCypher()
         fileName = raw_input('Please enter the filename of the text: ')
-        affine.encryptAffine(fileName)
-        affine.decryptAffine('affineOut.txt')
+        choice = raw_input("Please enter 1 for encrypt or two for decrypt: ")
+
+        if (choice == 1):
+            print("\nEncrypted Text: %s\n"%affine.encryptAffine(fileName))
+
+        else:
+
+            print("\nDecrypted Text: %s\n"%affine.decryptAffine(fileName))
 
 
 if __name__ == "__main__":

@@ -44,8 +44,8 @@ class merkleHellman:
 
             if nums[x] <= message: '''If the seq number at this position is equal to or less than the message, 
                                     write to output and reduce the message by the seq number'''
-                out[x] = 1
-                message = message - nums[x]
+            out[x] = 1
+            message = message - nums[x]
 
             else: #If the seq number is larger, do nothing
                 out[x] = 0

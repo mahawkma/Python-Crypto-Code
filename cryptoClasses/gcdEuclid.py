@@ -34,7 +34,7 @@ class gcdEuclid:
 
         out = {'a': a, 'b':b, 's':s, 't':t, 'u':u, 'v':v}
 
-        #print('%d*%d + %d*%d = %d'%(A,s,B,t,gE.gcdIter(A,B)))
+        print('%d*%d + %d*%d = %d'%(A,s,B,t,gE.gcdIter(A,B)))
 
         return out
 
