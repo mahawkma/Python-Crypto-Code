@@ -544,7 +544,7 @@ Cypher Toolkit Menu
         sub = subCypher()
         
         keyword = input('Please enter the keyword: ')
-        keyword = key.upper()
+        keyword = keyword.upper()
 
         key = sub.createKey(keyword)
         sub.encrypt(key)

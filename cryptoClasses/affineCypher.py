@@ -69,8 +69,8 @@ class AffineCypher:
 
     def run(self):
         affine = AffineCypher()
-        fileName = raw_input('Please enter the filename of the text: ')
-        choice = raw_input("Please enter 1 for encrypt or two for decrypt: ")
+        fileName = input('Please enter the filename of the text: ')
+        choice = input("Please enter 1 for encrypt or two for decrypt: ")
 
         if (choice == 1):
             print("\nEncrypted Text: %s\n"%affine.encryptAffine(fileName))

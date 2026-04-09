@@ -75,9 +75,9 @@ class ShiftCypher:
     #Code to run the class if ran as main.
     def run(self):
         sft = ShiftCypher()
-        fileName = raw_input('Please enter the filename of the text: ')
+        fileName = input('Please enter the filename of the text: ')
         sft.letterCounter(fileName)
-        shift = int(raw_input('Please enter the cypher shift: '))
+        shift = int(input('Please enter the cypher shift: '))
 
         with open(fileName) as file:
             for line in file:

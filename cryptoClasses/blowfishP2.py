@@ -618,7 +618,7 @@ class Blowfish:
             c = Blowfish(binascii.a2b_hex(v[0]))
             e = binascii.b2a_hex(c.encrypt(binascii.a2b_hex(v[1]))).upper()
             if e != v[2]:
-                print "VECTOR TEST FAIL: expecting %s, got %s" % (repr(v), e)
+                print("VECTOR TEST FAIL: expecting %s, got %s" % (repr(v), e))
                 ok = False
         return ok
 
@@ -629,57 +629,57 @@ class Blowfish:
 
 if __name__ == '__main__':
     if not Blowfish.testVectors():
-        print "WARNING: The implementation doesn't pass algorithm test vectors!"
+        print("WARNING: The implementation doesn't pass algorithm test vectors!")
     else:
-        print "The implementation passes algorithm test vectors (ECB)."
+        print("The implementation passes algorithm test vectors (ECB).")
 
     key = 'This is a test key'
     cipher = Blowfish (key)
 
-    print "Testing encryption:"
+    print("Testing encryption:")
     xl = 123456
     xr = 654321
-    print "\tPlain text: (%s, %s)" %(xl, xr)
+    print("\tPlain text: (%s, %s)" %(xl, xr))
     cl, cr = cipher.cipher (xl, xr, cipher.ENCRYPT)
-    print "\tCrypted is: (%s, %s)" %(cl, cr)
+    print("\tCrypted is: (%s, %s)" %(cl, cr))
     dl, dr = cipher.cipher (cl, cr, cipher.DECRYPT)
-    print "\tUnencrypted is: (%s, %s)" %(dl, dr)
+    print("\tUnencrypted is: (%s, %s)" %(dl, dr))
 
-    print "Testing block encrypt:"
+    print("Testing block encrypt:")
     text = 'testtest'
-    print "\tText:\t\t%s" %text
+    print("\tText:\t\t%s" %text)
     crypted = cipher.encrypt(text)
-    print "\tEncrypted:\t%s" % repr(crypted)
+    print("\tEncrypted:\t%s" % repr(crypted))
     decrypted = cipher.decrypt(crypted)
-    print "\tDecrypted:\t%s" %decrypted
-    
-    print "Testing CTR encrypt:"
+    print("\tDecrypted:\t%s" %decrypted)
+
+    print("Testing CTR encrypt:")
     cipher.initCTR()
     text = "The quick brown fox jumps over the lazy dog"
-    print "\tText:\t\t", text
+    print("\tText:\t\t", text)
     crypted = cipher.encryptCTR(text)
-    print "\tEncrypted:\t", repr(crypted)
+    print("\tEncrypted:\t", repr(crypted))
     cipher.initCTR()
     decrypted = cipher.decryptCTR(crypted)
-    print "\tDecrypted:\t", decrypted
+    print("\tDecrypted:\t", decrypted)
 
-    print "Testing CBC encrypt:"
+    print("Testing CBC encrypt:")
     cipher.initCBC()
     text = "Owen's Ornery Old Oryx Obstructed Olga's Optics."
-    print "\tText:\t\t", text
+    print("\tText:\t\t", text)
     crypted = cipher.encryptCBC(text)
-    print "\tEncrypted:\t", repr(crypted)
+    print("\tEncrypted:\t", repr(crypted))
     cipher.initCBC()
     decrypted = cipher.decryptCBC(crypted)
-    print "\tDecrypted:\t", decrypted
+    print("\tDecrypted:\t", decrypted)
 
-    print "Testing speed"
+    print("Testing speed")
     from time import time
     t1 = time()
     n = 0
     tlen = 0
     while True:
-        for i in xrange(1000):
+        for i in range(1000):
             tstr = "The quick brown fox jumps over the lazy dog %d" % i
             enc = cipher.encryptCTR(tstr)
             tlen += len(tstr)
@@ -688,5 +688,5 @@ if __name__ == '__main__':
         if t2 - t1 > 5:
             break
     t = t2 - t1
-    print "%d encryptions in %0.1f seconds: %0.1f enc/s, %0.1f bytes/s" % (n, t, n / t, tlen / t)
+    print("%d encryptions in %0.1f seconds: %0.1f enc/s, %0.1f bytes/s" % (n, t, n / t, tlen / t))
 

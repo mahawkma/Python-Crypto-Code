@@ -15,7 +15,7 @@ class ngram_score(object):
         self.L = len(key)
         self.N = sum(self.ngrams.values())
         #calculate log probabilities
-        for key in self.ngrams.keys():
+        for key in self.ngrams:
             self.ngrams[key] = log10(float(self.ngrams[key])/self.N)
         self.floor = log10(0.01/self.N)
 
