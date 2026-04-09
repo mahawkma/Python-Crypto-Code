@@ -1,31 +1,32 @@
-#include<stdio.h>
-#include<stdlib.h>
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 cypherText = input('Please enter the string to encode/decode: ')
 
+if not cypherText:
+    logger.error('Input string is empty.')
+    exit(1)
+
+logger.debug('Applying Atbash cipher to text of length %d', len(cypherText))
+
 l = len(cypherText)
 i = 0
-cypherList = list(cypherText)
-
-#print(cypherText)
-#print(cypherList[0])
 out = list('')
 
 while i < l:
-        c = cypherText[i]
+    c = cypherText[i]
 
-        if (ord(c) >= ord('a') and ord(c) <= ord('z')):
-            out.append('%c'% (chr(ord('z') - (ord(c) - ord('a')))))
-            #print('if')
-        elif (ord(c) >= ord('A') and ord(c) <= ord('Z')):
-            out.append('%c'% (chr(ord('Z') - (ord(c) - ord('A')))))
-            #print('elif')
-        else:
-            out.append(c)
-            #print(c)
+    if ord('a') <= ord(c) <= ord('z'):
+        out.append('%c' % (chr(ord('z') - (ord(c) - ord('a')))))
+    elif ord('A') <= ord(c) <= ord('Z'):
+        out.append('%c' % (chr(ord('Z') - (ord(c) - ord('A')))))
+    else:
+        out.append(c)
 
-        i += 1
+    i += 1
 
-print(''.join(out))
-
-
+result = ''.join(out)
+logger.info('Atbash cipher applied successfully.')
+print(result)

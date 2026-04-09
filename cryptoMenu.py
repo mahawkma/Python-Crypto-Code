@@ -1,5 +1,6 @@
 #One must be running Python 3 for this bad boy to work.
 import sys, re
+import logging
 from cryptoClasses.shiftCypher import ShiftCypher
 from cryptoClasses.affineCypher import AffineCypher
 from cryptoClasses.subCypher import subCypher
@@ -7,6 +8,9 @@ from cryptoClasses.vigenereCypher import vigenereCypher
 from cryptoClasses.binaryCyphers import binaryCyphers
 from sympy.crypto.crypto import encipher_hill, decipher_hill #sympy is not part of the default Python install. This needs to be installed with PIP3.
 from sympy import Matrix, pprint
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 #Menu system for the Cyber Tool kit.
@@ -51,11 +55,11 @@ Cypher Toolkit Menu
 5. Frequency Counter                11. Decrypt Vigenere            17. Encrypt Vigenere Binary from text
 6. Substitution Decrypt             12. Encypher Hill               18. Decrypt Vigenere Binary from binary
 ''')
-    
+
     #Function:          run
     #Para:              None
     #Return:            None
-    #Description:       Dislpays the menu and asks for a choice. If the choice is valid, executes the action signified by that choice.
+    #Description:       Displays the menu and asks for a choice. If the choice is valid, executes the action.
     def run(self):
         while True:
             self.displayMenu()
@@ -64,29 +68,33 @@ Cypher Toolkit Menu
 
             if action:
                 action()
-
             else:
-                print("\n%s is not a valid choice." %choice)
+                logger.warning('Invalid menu choice: "%s"', choice)
+                print("\n%s is not a valid choice." % choice)
 
     #Decrypt a binary string using the Vigenere Binary Cypher
     def decryptVegBinary(self):
         binC = binaryCyphers()
         file = input("Please enter the name of the file that contains the binary to decrypt: ")
         key = input("Please enter the key (no spaces): ")
-        binary = ''
 
+        if not key:
+            logger.error('Key cannot be empty.')
+            return
+
+        binary = ''
         try:
             with open(file, 'r') as f:
                 binary = f.read()
-
+        except FileNotFoundError:
+            logger.error('File not found: %s', file)
+            return
         except IOError as e:
-            print('Unable to open %s' %file)
-            Menu().run()
-        
+            logger.error('Unable to open %s: %s', file, e)
+            return
 
-
+        logger.debug('Decrypting binary Vigenere from file "%s"', file)
         text = binC.binaryVigenere(key, binary)
-
         print(binC.convertBinaryChar(text))
 
     #Encrypt a string using the Vigenere binary cypher
@@ -94,43 +102,52 @@ Cypher Toolkit Menu
         binC = binaryCyphers()
         file = input("Please enter the name of the file that contains the text to encrypt: ")
         key = input("Please enter the key (no spaces): ")
-        text = ''
 
+        if not key:
+            logger.error('Key cannot be empty.')
+            return
+
+        text = ''
         try:
             with open(file, 'r') as f:
                 text = f.read()
-
+        except FileNotFoundError:
+            logger.error('File not found: %s', file)
+            return
         except IOError as e:
-            print('Unable to open %s' %file)
-            Menu().run()
+            logger.error('Unable to open %s: %s', file, e)
+            return
 
+        logger.debug('Encrypting text to binary Vigenere from file "%s"', file)
         binary = str(binC.convertCharBinary(text))
-
         print(binC.binaryVigenere(key, binary))
-
 
     #Encrypt/decrypt for a binary vigenere
     def binaryVigenere(self):
         binC = binaryCyphers()
         file = input("Please enter the name of the file that contains the binary to encrypt/decrypt: ")
         key = input("Please enter the key (no spaces): ")
-        text = ''
 
+        if not key:
+            logger.error('Key cannot be empty.')
+            return
+
+        text = ''
         try:
             with open(file, 'r') as f:
                 text = f.read()
-
+        except FileNotFoundError:
+            logger.error('File not found: %s', file)
+            return
         except IOError as e:
-            print('Unable to open %s' %file)
-            Menu().run()
+            logger.error('Unable to open %s: %s', file, e)
+            return
 
+        logger.debug('Binary Vigenere on file "%s"', file)
         out = binC.binaryVigenere(key, text)
-
         print(out)
 
-
     #Brute Sub Cypher using ngrams
-
     def bruteSub(self):
         from pycipher import SimpleSubstitution as SimpleSub
         import random
@@ -139,95 +156,110 @@ Cypher Toolkit Menu
         import cryptoClasses.detectEnglish
 
         ngram = input('Please enter the name of the ngram file to try: ')
-        fitness = ngram_score(ngram) # load our quadgram statistics
-        #print(fitness)
+        try:
+            fitness = ngram_score(ngram)
+        except (FileNotFoundError, ValueError) as e:
+            logger.error('Failed to load ngram file "%s": %s', ngram, e)
+            return
+
         file = input('Please enter the name of the encrypted text file to crack: ')
-        ctext=''
+        ctext = ''
+        try:
+            with open(file, 'r') as f:
+                ctext = f.read()
+        except FileNotFoundError:
+            logger.error('File not found: %s', file)
+            return
+        except IOError as e:
+            logger.error('Unable to open %s: %s', file, e)
+            return
 
-        with open(file, 'r') as f:
-            text = f.read()
-            ctext = ctext + text
-
-        ctext = re.sub('[^A-Z]','',ctext.upper())
+        ctext = re.sub('[^A-Z]', '', ctext.upper())
+        if not ctext:
+            logger.error('File "%s" contains no alphabetic characters.', file)
+            return
 
         maxkey = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
         maxscore = -99e9
-        parentscore,parentkey = maxscore,maxkey[:]
-        print ("Substitution Cipher solver, you may have to wait several iterations")
-        print ("for the correct result. Press ctrl+c to return to menu.")
-        # keep going until we are killed by the user
+        parentscore, parentkey = maxscore, maxkey[:]
+        print("Substitution Cipher solver, you may have to wait several iterations")
+        print("for the correct result. Press ctrl+c to return to menu.")
+
         try:
             i = 0
-            while 1:
-                i = i+1
+            while True:
+                i = i + 1
                 random.shuffle(parentkey)
                 deciphered = SimpleSub(parentkey).decipher(ctext)
                 parentscore = fitness.score(deciphered)
                 count = 0
                 while count < 1000:
-                    a = random.randint(0,25)
-                    b = random.randint(0,25)
+                    a = random.randint(0, 25)
+                    b = random.randint(0, 25)
                     child = parentkey[:]
-                    # swap two characters in the child
-                    child[a],child[b] = child[b],child[a]
+                    child[a], child[b] = child[b], child[a]
                     deciphered = SimpleSub(child).decipher(ctext)
                     score = fitness.score(deciphered)
-                    # if the child was better, replace the parent with it
-                    if (score > parentscore):
+                    if score > parentscore:
                         parentscore = score
                         parentkey = child[:]
                         count = 0
-                    count = count+1
-                # keep track of best score seen so far
-                if parentscore>maxscore:
-                    maxscore,maxkey = parentscore,parentkey[:]
-                    print ('\nbest score so far:',maxscore,'on iteration',i)
+                    count = count + 1
+                if parentscore > maxscore:
+                    maxscore, maxkey = parentscore, parentkey[:]
+                    logger.info('New best score: %.2f on iteration %d', maxscore, i)
+                    print('\nbest score so far:', maxscore, 'on iteration', i)
                     ss = SimpleSub(maxkey)
-                    print ('    best key: '+''.join(maxkey))
-                    print ('    plaintext: '+ss.decipher(ctext))
-
-        except KeyboardInterrupt as e:
-                            print('\nWe are done!')
-                            Menu().run()
-
+                    print('    best key: ' + ''.join(maxkey))
+                    print('    plaintext: ' + ss.decipher(ctext))
+        except KeyboardInterrupt:
+            print('\nWe are done!')
 
     #Encypher a message using the Hill Cypher
     def encypherHill(self):
-        #key = input("Please enter the key in the format [ [a,b], [c,d] ]: ")
-        numRows = int(input('Please enter the number of rows in the matrix: '))
+        try:
+            numRows = int(input('Please enter the number of rows in the matrix: '))
+        except ValueError:
+            logger.error('Number of rows must be an integer.')
+            return
+
         fName = input('Please enter the name of the text file to encypher: ')
-        text = ''
         val = ''
-
-        numValues = numRows * numRows
-
-        line = input('Please enter the values of the matrix in order seperated by spaces with a space at the end: ')
+        line = input('Please enter the values of the matrix in order separated by spaces with a space at the end: ')
 
         mat = []
-
         for ch in line:
             if ch != ' ':
                 val = val + ch
-
             elif ch == ' ':
-                #print(val)
-                mat.append(int(val))
+                if val:
+                    try:
+                        mat.append(int(val))
+                    except ValueError:
+                        logger.error('Matrix value "%s" is not an integer.', val)
+                        return
                 val = ''
 
+        if len(mat) != numRows * numRows:
+            logger.error('Expected %d matrix values, got %d.', numRows * numRows, len(mat))
+            return
+
         mKey = Matrix(numRows, numRows, mat)
+        text = ''
 
         try:
             with open(fName, 'r') as f:
                 text = f.read().strip().upper()
-
+        except FileNotFoundError:
+            logger.error('File not found: %s', fName)
+            return
         except IOError as e:
-            print('Unable to open %s' %fName)
-            Menu().run()
+            logger.error('Unable to open %s: %s', fName, e)
+            return
 
-        text = re.sub('[^A-Z]','', text)
-
+        text = re.sub('[^A-Z]', '', text)
+        logger.debug('Enciphering Hill with %dx%d matrix', numRows, numRows)
         out = encipher_hill(text, mKey)
-
         print(out)
 
     #Brute Force 2 x 2 Hill
@@ -236,91 +268,97 @@ Cypher Toolkit Menu
         import cryptoClasses.detectEnglish
 
         fName = input('Please enter the name of the text file to decypher: ')
-        outFile = open('bruteHillOut.txt', 'w')
-        fitness = ngram_score('quadgrams.txt') #Fitness function dependent on ngrams
-        out = ''
+        fitness = ngram_score('quadgrams.txt')
         maxscore = -99e9
 
         try:
             with open(fName, 'r') as f:
                 text = f.read().strip().upper()
-
+        except FileNotFoundError:
+            logger.error('File not found: %s', fName)
+            return
         except IOError as e:
-            print('Unable to open %s' %fName)
-            Menu().run()
+            logger.error('Unable to open %s: %s', fName, e)
+            return
 
-        text = re.sub('[^A-Z]','', text)
+        text = re.sub('[^A-Z]', '', text)
 
         print('Bruting solutions. . .')
-        print("This will take awhile. If you don't want to wait and think you found a solution, hit ctrl+c. The output will be written to bruteHillOut.txt.")
+        print("This will take awhile. Hit ctrl+c when done. Output written to bruteHillOut.txt.")
 
-        #This will run through all the possible combinations of a 2x2 matrix
-        for a in range(0,26):
-            for b in range(0,26):
-                for c in range(0,26):
-                    for d in range(0,26):
-                        mKey = Matrix(2,2,[a,b,c,d])
+        try:
+            with open('bruteHillOut.txt', 'w') as outFile:
+                for a in range(0, 26):
+                    for b in range(0, 26):
+                        for c in range(0, 26):
+                            for d in range(0, 26):
+                                mKey = Matrix(2, 2, [a, b, c, d])
+                                try:
+                                    out = decipher_hill(text, mKey)
+                                except ValueError:
+                                    continue
+                                score = fitness.score(out)
+                                if score > maxscore:
+                                    outFile.write(str(mKey))
+                                    outFile.write(out)
+                                    outFile.write('\n')
+                                    maxscore = score
+                                    pprint(mKey)
+                                    print('Score: %f Text: %s' % (score, out))
+        except KeyboardInterrupt:
+            logger.info('Brute Hill interrupted by user.')
+        except IOError as e:
+            logger.error('Error writing to bruteHillOut.txt: %s', e)
+            return
 
-                        try:
-                            out = decipher_hill(text, mKey) #decipher the text based on the current matrix
-
-                        except ValueError as e: #catch if the matrix does not have an inverse
-                            continue
-
-                        except KeyboardInterrupt as e:
-                            print('\nOutput written to bruteHillOut.txt')
-                            Menu().run()
-
-                        score = fitness.score(out) #Determine how much like English the decrypt is
-
-                        if score > maxscore: # If score greater then max, output the results
-                            outFile.write(str(mKey))
-                            outFile.write(out)
-                            outFile.write('\n')
-                            maxscore = score
-                            pprint(mKey)
-                            print('Score: %f Text: %s'%(score, out))
-
-        outFile.close()
         print('Output written to bruteHillOut.txt')
-
+        logger.info('Brute Hill complete.')
 
     #Decrypt a message using the Hill Cypher
     def decypherHill(self):
-        numRows = int(input('Please enter the number of rows in the matrix: '))
-        fName = input('Please enter the name of the text file to encypher: ')
-        text = ''
-        val =''
+        try:
+            numRows = int(input('Please enter the number of rows in the matrix: '))
+        except ValueError:
+            logger.error('Number of rows must be an integer.')
+            return
 
-        numValues = numRows * numRows
-
-        line = input('Please enter the values of the matrix in order seperated by spaces with a space at the end: ')
+        fName = input('Please enter the name of the text file to decypher: ')
+        val = ''
+        line = input('Please enter the values of the matrix in order separated by spaces with a space at the end: ')
 
         mat = []
-
         for ch in line:
             if ch != ' ':
                 val = val + ch
-
             elif ch == ' ':
-                #print(val)
-                mat.append(int(val))
+                if val:
+                    try:
+                        mat.append(int(val))
+                    except ValueError:
+                        logger.error('Matrix value "%s" is not an integer.', val)
+                        return
                 val = ''
 
+        if len(mat) != numRows * numRows:
+            logger.error('Expected %d matrix values, got %d.', numRows * numRows, len(mat))
+            return
+
         mKey = Matrix(numRows, numRows, mat)
+        text = ''
 
         try:
             with open(fName, 'r') as f:
                 text = f.read().strip().upper()
-
+        except FileNotFoundError:
+            logger.error('File not found: %s', fName)
+            return
         except IOError as e:
-            print('Unable to open %s' %fName)
-            Menu().run()
+            logger.error('Unable to open %s: %s', fName, e)
+            return
 
-        text = re.sub('[^A-Z]','', text)
-
+        text = re.sub('[^A-Z]', '', text)
+        logger.debug('Deciphering Hill with %dx%d matrix', numRows, numRows)
         out = decipher_hill(text, mKey)
-
         print(out)
 
     #Encrypt a message with the Vigenere Cypher
@@ -328,20 +366,25 @@ Cypher Toolkit Menu
         vc = vigenereCypher()
         fName = input('Please enter the name of the text file: ')
         kWord = input('Please enter the keyword: ')
-        text = ''
 
+        if not kWord:
+            logger.error('Keyword cannot be empty.')
+            return
+
+        text = ''
         try:
             with open(fName, 'r') as f:
                 text = f.read().strip().upper()
-
+        except FileNotFoundError:
+            logger.error('File not found: %s', fName)
+            return
         except IOError as e:
-            print('Unable to open %s' %fName)
-            Menu().run()
+            logger.error('Unable to open %s: %s', fName, e)
+            return
 
-        text = re.sub('[^A-Z]','', text)
-
+        text = re.sub('[^A-Z]', '', text)
+        logger.debug('Encrypting Vigenere with keyword "%s"', kWord)
         out = vc.encryptMessage(kWord, text)
-
         print(out)
 
     #Decrypt a message that has been encyphered with the Vigenere Cypher
@@ -349,180 +392,215 @@ Cypher Toolkit Menu
         vc = vigenereCypher()
         fName = input('Please enter the name of the text file: ')
         kWord = input('Please enter the keyword: ')
-        text = ''
 
+        if not kWord:
+            logger.error('Keyword cannot be empty.')
+            return
+
+        text = ''
         try:
             with open(fName, 'r') as f:
                 text = f.read().strip().upper()
-
+        except FileNotFoundError:
+            logger.error('File not found: %s', fName)
+            return
         except IOError as e:
-            print('Unable to open %s' %fName)
-            Menu().run()
+            logger.error('Unable to open %s: %s', fName, e)
+            return
 
-        text = re.sub('[^A-Z]','', text)
-
+        text = re.sub('[^A-Z]', '', text)
+        logger.debug('Decrypting Vigenere with keyword "%s"', kWord)
         out = vc.decryptMessage(kWord, text)
-
         print(out)
-    
-    #Calculates the possible key of a Vigenere Cypher using the dot product and outputs a table showing the values         
+
+    #Calculates the possible key of a Vigenere Cypher using the dot product
     def calcKey(self):
         vc = vigenereCypher()
         fName = input('Please enter the name of the text file: ')
-        length = int(input('Please enter the length of keyword: '))
-        text = ''
 
+        try:
+            length = int(input('Please enter the length of keyword: '))
+        except ValueError:
+            logger.error('Keyword length must be an integer.')
+            return
+
+        if length <= 0:
+            logger.error('Keyword length must be a positive integer.')
+            return
+
+        text = ''
         try:
             with open(fName, 'r') as f:
                 text = f.read().strip().upper()
-
+        except FileNotFoundError:
+            logger.error('File not found: %s', fName)
+            return
         except IOError as e:
-            print('Unable to open %s' %fName)
-            Menu().run()
+            logger.error('Unable to open %s: %s', fName, e)
+            return
 
-        text = re.sub('[^A-Z]','', text)
-
+        text = re.sub('[^A-Z]', '', text)
+        logger.debug('Calculating Vigenere key for length %d', length)
         vc.calcKey(text, length)
 
-    #Calculate the keyword length of a Vigenere Cypher and outputs it
+    #Calculate the keyword length of a Vigenere Cypher
     def calcKeywordLength(self):
         vc = vigenereCypher()
         fName = input('Please enter text file to do the calculation on: ')
-        length = int(input('Please enter maximum length of keyword: '))
-        text = ''
-        l = 1
 
+        try:
+            length = int(input('Please enter maximum length of keyword: '))
+        except ValueError:
+            logger.error('Keyword length must be an integer.')
+            return
+
+        if length <= 0:
+            logger.error('Keyword length must be a positive integer.')
+            return
+
+        text = ''
         try:
             with open(fName, 'r') as f:
                 text = f.read().strip().upper()
-
+        except FileNotFoundError:
+            logger.error('File not found: %s', fName)
+            return
         except IOError as e:
-            print('Unable to open %s' %fName)
-            Menu().run()
+            logger.error('Unable to open %s: %s', fName, e)
+            return
 
-        text = re.sub('[^A-Z]','', text)
+        text = re.sub('[^A-Z]', '', text)
+        l = 1
 
         while l in range(1, length + 1):
             V = vc.calcV(text, l, length)
             A = vc.calcA(V, l)
 
             for i in range(len(V)):
-                print('V%d = %f '%(i + 1, V[i]), sep = ' ', end='')
-            
-            print('A%d = %f'%(l, A))
+                print('V%d = %f ' % (i + 1, V[i]), sep=' ', end='')
 
+            print('A%d = %f' % (l, A))
             l = l + 1
 
-
-    #Executes a shift cypher and prints the result to standard IO and to a file. 
+    #Executes a shift cypher and prints the result to standard IO and to a file.
     def shift(self):
         sft = ShiftCypher()
         fileName = input('Please enter the filename of the text: ')
-        out = open('shiftOut.txt', 'w')
-
-        #try:
-            #freq = sft.letterCounter(fileName) #Determines freq of the chars in the passed file.
-            #print(freq)
-
-        #except IOError as e:
-            #print('File not found')
-            #Menu().run()
-
-        shift = int(input('Please enter the cypher shift: '))
 
         try:
-            with open(fileName) as file:
+            shift = int(input('Please enter the cypher shift: '))
+        except ValueError:
+            logger.error('Shift must be an integer.')
+            return
+
+        logger.debug('Applying shift cipher: file=%s, shift=%d', fileName, shift)
+
+        try:
+            with open(fileName) as file, open('shiftOut.txt', 'w') as out:
                 for line in file:
                     shifted = sft.shiftCypher(line, shift)
                     out.write(shifted)
                     print(shifted)
-
+        except FileNotFoundError:
+            logger.error('File not found: %s', fileName)
+            return
         except IOError as e:
-            print('File %s not found' %fileName)
-            Menu().run()
+            logger.error('File I/O error: %s', e)
+            return
 
+        logger.info('Shift cipher complete. Output written to shiftOut.txt.')
         print('Output written to shiftOut.txt')
 
-    #Executes the Affine Encrypt method. See class for more detailed comments.
+    #Executes the Affine Encrypt method.
     def affineEncrypt(self):
         affine = AffineCypher()
-        try:
-            fileName = input('Please enter the filename of the text: ')
-
-        except IOError as e:
-            print('File %s not found' %fileName)
-            Menu().run()
-
+        fileName = input('Please enter the filename of the text: ')
+        logger.debug('Affine encrypt: file=%s', fileName)
         affine.encryptAffine(fileName)
 
-    #Executes the Affine Decrypt method. See class for more detailed comments.
+    #Executes the Affine Decrypt method.
     def affineDecrypt(self):
         affine = AffineCypher()
-        try:
-            fileName = input('Please enter the filename of the text: ')
-
-        except IOError as e:
-            print('File %s not found' %fileName)
-            Menu().run()
-
+        fileName = input('Please enter the filename of the text: ')
+        logger.debug('Affine decrypt: file=%s', fileName)
         affine.decryptAffine(fileName)
 
     #Determines the frequency of letters in a text file
     def freqCounter(self):
         vc = vigenereCypher()
         fName = input('Please enter text file to do frequency count on: ')
-        sets = int(input('Please enther the number alphabets in use: '))
-        place = 0
-        text = ''
 
+        try:
+            sets = int(input('Please enter the number of alphabets in use: '))
+        except ValueError:
+            logger.error('Number of alphabets must be an integer.')
+            return
+
+        if sets <= 0:
+            logger.error('Number of alphabets must be a positive integer.')
+            return
+
+        text = ''
         try:
             with open(fName, 'r') as f:
                 text = f.read().strip().upper()
-
+        except FileNotFoundError:
+            logger.error('File not found: %s', fName)
+            return
         except IOError as e:
-            print('Unable to open %s' %fName)
-            Menu().run()
+            logger.error('Unable to open %s: %s', fName, e)
+            return
 
-        text = re.sub('[^A-Z]','', text)
+        text = re.sub('[^A-Z]', '', text)
+        place = 0
 
         while place < sets:
             freq = vc.letterFrequency(text, sets, place)
 
             from string import ascii_uppercase
-
-            print('Set %d: '%(place + 1))
+            print('Set %d: ' % (place + 1))
             for c in ascii_uppercase:
-                print('[%s : %f];'%(c, freq[c]), sep = ' ', end='')
+                print('[%s : %f];' % (c, freq[c]), sep=' ', end='')
 
             place += 1
             print('\n')
 
-    #Executes the letter counter to determine count of chars in text based on number of alphabets. Also calcs Index of Coincidence and possible key length
+    #Executes the letter counter to determine count of chars in text.
     def letterCounter(self):
         vc = vigenereCypher()
         fName = input('Please enter text file to do the count on: ')
-        sets = int(input('Please enther the number alphabets in use: '))
-        place = 0
+
+        try:
+            sets = int(input('Please enter the number of alphabets in use: '))
+        except ValueError:
+            logger.error('Number of alphabets must be an integer.')
+            return
+
+        if sets <= 0:
+            logger.error('Number of alphabets must be a positive integer.')
+            return
+
         text = ''
-        
         try:
             with open(fName, 'r') as f:
                 text = f.read().strip().upper()
-
+        except FileNotFoundError:
+            logger.error('File not found: %s', fName)
+            return
         except IOError as e:
-            print('Unable to open %s' %fName)
-            Menu().run()
+            logger.error('Unable to open %s: %s', fName, e)
+            return
 
-        text = re.sub('[^A-Z]','', text)
+        text = re.sub('[^A-Z]', '', text)
+        place = 0
 
         while place < sets:
             freq = vc.letterCounter(text, sets, place)
 
             from string import ascii_uppercase
-
-            print('Set %d: '%(place + 1))
+            print('Set %d: ' % (place + 1))
             for c in ascii_uppercase:
-                print('[%s : %d];'%(c, freq[c]), sep = ' ', end='')
+                print('[%s : %d];' % (c, freq[c]), sep=' ', end='')
 
             place += 1
             print('\n')
@@ -530,33 +608,41 @@ Cypher Toolkit Menu
         freq = vc.letterCounter(text, 1, 0)
         print('For text as a whole: ')
 
+        from string import ascii_uppercase
         for c in ascii_uppercase:
-                print('[%s : %d];'%(c, freq[c]), sep = ' ', end='')
+            print('[%s : %d];' % (c, freq[c]), sep=' ', end='')
 
         print('\n')
 
         I = float(vc.indexC(freq, text))
-        print('Index of Coincidence = %.6f.'%I)
-        print('Possible key word length = %.6f' %vc.keyLength(I, text))
+        print('Index of Coincidence = %.6f.' % I)
+        print('Possible key word length = %.6f' % vc.keyLength(I, text))
 
-    #Ecrypt a message using a keyword and a substitution cypher
+    #Encrypt a message using a keyword and a substitution cypher
     def encryptSub(self):
         sub = subCypher()
-        
         keyword = input('Please enter the keyword: ')
+        if not keyword:
+            logger.error('Keyword cannot be empty.')
+            return
         keyword = keyword.upper()
-
+        logger.debug('Substitution encrypt with keyword "%s"', keyword)
         key = sub.createKey(keyword)
-        sub.encrypt(key)
+        if key:
+            sub.encrypt(key)
 
     #Decrypt a message using a keyword and a substitution cypher
     def decryptSub(self):
         sub = subCypher()
-    
-        keyword= input('Please enter the keyword: ')
-
+        keyword = input('Please enter the keyword: ')
+        if not keyword:
+            logger.error('Keyword cannot be empty.')
+            return
+        keyword = keyword.upper()
+        logger.debug('Substitution decrypt with keyword "%s"', keyword)
         key = sub.createKey(keyword)
-        sub.decrypt(key)
+        if key:
+            sub.decrypt(key)
 
     #Quits the toolkit
     def quit(self):

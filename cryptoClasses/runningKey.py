@@ -1,54 +1,56 @@
 import re
 import sys
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 message = 'prob2.5.9.txt'
 pre = 'preamble.txt'
 getty = 'getty.txt'
 
-text = ''
-ctext = ''
+def read_file(filename):
+    try:
+        with open(filename, 'r') as f:
+            return f.read()
+    except FileNotFoundError:
+        logger.error('File not found: %s', filename)
+        exit(1)
+    except IOError as e:
+        logger.error('Error reading file %s: %s', filename, e)
+        exit(1)
 
-with open(message, 'r') as f:
-            text = f.read()
-            ctext = ctext + text
+logger.debug('Reading input files: %s, %s, %s', message, pre, getty)
 
-m = ctext
-ctext = ''
-text = ''
+m = re.sub('[^A-Z]', '', read_file(message).upper())
+p = re.sub('[^A-Z]', '', read_file(pre).upper())
+g = re.sub('[^A-Z]', '', read_file(getty).upper())
 
-with open(pre, 'r') as f:
-            text = f.read()
-            ctext = ctext + text
+if not m:
+    logger.error('Message file "%s" contains no alphabetic characters.', message)
+    exit(1)
 
-p = ctext
-ctext = ''
-text = ''
+if len(p) < len(m) or len(g) < len(m):
+    logger.error('Key files are shorter than the message (msg=%d, preamble=%d, getty=%d). Cannot decrypt.',
+                 len(m), len(p), len(g))
+    exit(1)
 
-with open(getty, 'r') as f:
-            text = f.read()
-            ctext = ctext + text
-
-g = ctext
-
-out = open('prob2.5.9.Out.txt', 'w')
-
-m = re.sub('[^A-Z]','', m.upper())
-p = re.sub('[^A-Z]','', p.upper())
-g =re.sub('[^A-Z]','', g.upper())
+logger.debug('Message length: %d, preamble length: %d, getty length: %d', len(m), len(p), len(g))
 
 pos = 0
 text = ''
 
-
 for ch in m:
-    #print(ch)
-    decoded = ( (ord(ch) - 65) - (ord(p[pos]) - 65) - (ord(g[pos]) - 65) )%26
+    decoded = ((ord(ch) - 65) - (ord(p[pos]) - 65) - (ord(g[pos]) - 65)) % 26
     decoded = chr(decoded + 65)
-    #print(decoded)
     text = text + decoded
     pos += 1
 
 print(text)
-out.write(text)
 
-out.close()
+try:
+    with open('prob2.5.9.Out.txt', 'w') as out:
+        out.write(text)
+    logger.info('Output written to prob2.5.9.Out.txt')
+except IOError as e:
+    logger.error('Error writing output file: %s', e)

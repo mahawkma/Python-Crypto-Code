@@ -119,7 +119,7 @@ class Blowfish:
     def __init__ (self, key):
 
         if not key or len (key) < 8 or len (key) > 56:
-            raise RuntimeError, "Attempted to initialize Blowfish cipher with key of invalid length: %s" % len (key)
+            raise RuntimeError("Attempted to initialize Blowfish cipher with key of invalid length: %s" % len (key))
 
         self.p_boxes = [
             0x243F6A88, 0x85A308D3, 0x13198A2E, 0x03707344,
@@ -466,7 +466,7 @@ class Blowfish:
 
     def encrypt (self, data):
         if not len (data) == 8:
-            raise RuntimeError, "Attempted to encrypt data of invalid block length: %s" % len(data)
+            raise RuntimeError("Attempted to encrypt data of invalid block length: %s" % len(data))
 
         # Use big endianess since that's what everyone else uses
         xl = ord (data[3]) | (ord (data[2]) << 8) | (ord (data[1]) << 16) | (ord (data[0]) << 24)
@@ -482,7 +482,7 @@ class Blowfish:
 
     def decrypt (self, data):
         if not len (data) == 8:
-            raise RuntimeError, "Attempted to encrypt data of invalid block length: %s" % len(data)
+            raise RuntimeError("Attempted to encrypt data of invalid block length: %s" % len(data))
 
         # Use big endianess since that's what everyone else uses
         cl = ord (data[3]) | (ord (data[2]) << 8) | (ord (data[1]) << 16) | (ord (data[0]) << 24)
@@ -511,9 +511,9 @@ class Blowfish:
         Each buffer must be a multiple of 8-octets (64-bits) in length.
         """
         if type(data) != types.StringType:
-            raise RuntimeError, "Can only work on 8-bit strings"
+            raise RuntimeError("Can only work on 8-bit strings")
         if (len(data) % 8) != 0:
-            raise RuntimeError, "Can only work with data in 64-bit multiples in CBC mode"
+            raise RuntimeError("Can only work with data in 64-bit multiples in CBC mode")
 
         xor = lambda t: ord(t[0]) ^ ord(t[1])
         result = ''
@@ -530,9 +530,9 @@ class Blowfish:
 
     def decryptCBC(self, data):
         if type(data) != types.StringType:
-            raise RuntimeError, "Can only work on 8-bit strings"
+            raise RuntimeError("Can only work on 8-bit strings")
         if (len(data) % 8) != 0:
-            raise RuntimeError, "Can only work with data in 64-bit multiples in CBC mode"
+            raise RuntimeError("Can only work with data in 64-bit multiples in CBC mode")
 
         xor = lambda t: ord(t[0]) ^ ord(t[1])
         result = ''
@@ -578,7 +578,7 @@ class Blowfish:
         with this method one after the other without any intermediate work.
         """
         if type(data) != types.StringType:
-            raise RuntimeException, "Can only work on 8-bit strings"
+            raise RuntimeError("Can only work on 8-bit strings")
         result = []
         for ch in data:
             result.append(chr(ord(ch) ^ self._nextCTRByte()))

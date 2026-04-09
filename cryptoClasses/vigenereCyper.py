@@ -2,42 +2,60 @@
 # http://inventwithpython.com/hacking (BSD Licensed)
 import sys
 import re
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 def main():
-    # This text can be copy/pasted from http://invpy.com/vigenereCipher.py
-    myFile = input ("Enter name of file that holds the message: ")
+    myFile = input("Enter name of file that holds the message: ")
     myKey = input("Please enter the key: ")
-    myMode = input("Please enter the mode (encrypt or decrypt): ") # set to 'encrypt' or 'decrypt'
-    ctext = ''
+    myMode = input("Please enter the mode (encrypt or decrypt): ")
 
+    if not myKey:
+        logger.error('Key cannot be empty.')
+        return
+
+    if myMode not in ('encrypt', 'decrypt'):
+        logger.error('Invalid mode "%s". Must be "encrypt" or "decrypt".', myMode)
+        return
+
+    ctext = ''
     try:
         with open(myFile, 'r') as f:
-            text = f.read()
-            ctext = ctext + text
-
+            ctext = f.read()
+    except FileNotFoundError:
+        logger.error('File not found: %s', myFile)
+        return
     except IOError as e:
-        print('Error opening %s'%myFile)
+        logger.error('Error opening %s: %s', myFile, e)
+        return
 
-    myMessage = re.sub('[^A-Z]','',ctext.upper())
+    myMessage = re.sub('[^A-Z]', '', ctext.upper())
+
+    if not myMessage:
+        logger.error('File "%s" contains no alphabetic characters.', myFile)
+        return
+
+    logger.debug('Mode: %s, key: %s, message length: %d', myMode, myKey, len(myMessage))
 
     if myMode == 'encrypt':
         translated = encryptMessage(myKey, myMessage)
-    elif myMode == 'decrypt':
+    else:
         translated = decryptMessage(myKey, myMessage)
 
-    print('%sed message:' % (myMode.title()))
+    print('%sed message:' % myMode.title())
     print(translated)
-    
+    logger.info('Translation complete.')
+
     try:
-        fOut =open("vigenereOut.txt", 'w')
-        fOut.write(translated)
-        fOut.close()
-
+        with open("vigenereOut.txt", 'w') as fOut:
+            fOut.write(translated)
+        logger.info('Output written to vigenereOut.txt')
     except IOError as e:
-        print('Error writing to vigenereOut.txt')
-
+        logger.error('Error writing to vigenereOut.txt: %s', e)
 
 
 def encryptMessage(key, message):
@@ -49,41 +67,33 @@ def decryptMessage(key, message):
 
 
 def translateMessage(key, message, mode):
-    translated = [] # stores the encrypted/decrypted message string
-
+    translated = []
     keyIndex = 0
     key = key.upper()
 
-    for symbol in message: # loop through each character in message
+    for symbol in message:
         num = LETTERS.find(symbol.upper())
-        #print(num)
-        if num != -1: # -1 means symbol.upper() was not found in LETTERS
+        if num != -1:
             if mode == 'encrypt':
-                #print(LETTERS.find(key[keyIndex]))
-                num += LETTERS.find(key[keyIndex]) # add if encrypting
-                #print(num)
+                num += LETTERS.find(key[keyIndex])
             elif mode == 'decrypt':
-                num -= LETTERS.find(key[keyIndex]) # subtract if decrypting
+                num -= LETTERS.find(key[keyIndex])
 
-            num %= len(LETTERS) # handle the potential wrap-around
+            num %= len(LETTERS)
 
-            # add the encrypted/decrypted symbol to the end of translated.
             if symbol.isupper():
                 translated.append(LETTERS[num])
             elif symbol.islower():
                 translated.append(LETTERS[num].lower())
 
-            keyIndex += 1 # move to the next letter in the key
+            keyIndex += 1
             if keyIndex == len(key):
                 keyIndex = 0
         else:
-            # The symbol was not in LETTERS, so add it to translated as is.
             translated.append(symbol)
 
     return ''.join(translated)
 
 
-# If vigenereCipher.py is run (instead of imported as a module) call
-# the main() function.
 if __name__ == '__main__':
     main()
