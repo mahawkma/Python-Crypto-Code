@@ -15,7 +15,7 @@ class RSA:
     def isPrime(self, num):
         if num < 2:
             return False
-        for i in range(2, math.ceil(math.sqrt(num)) + 1):
+        for i in range(2, math.isqrt(num) + 1):
             if (num % i) == 0:
                 return False
         return True

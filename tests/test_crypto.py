@@ -494,16 +494,8 @@ class TestRSA(unittest.TestCase):
         self.rsa = RSA()
 
     def test_is_prime_true(self):
-        # NOTE: isPrime(2) returns False due to a bug — ceil(sqrt(2))+1 = 3,
-        # so range(2,3)=[2], and 2%2==0 causes an early False return.
-        # 2 is excluded from this test; the bug is documented in test_is_prime_two.
-        for p in [3, 5, 7, 11, 13, 17, 19, 23, 97]:
+        for p in [2, 3, 5, 7, 11, 13, 17, 19, 23, 97]:
             self.assertTrue(self.rsa.isPrime(p), f"{p} should be prime")
-
-    def test_is_prime_two_known_bug(self):
-        # Known bug: isPrime(2) returns False because the implementation uses
-        # range(2, ceil(sqrt(2))+1) which includes 2, and 2%2==0 triggers False.
-        self.assertFalse(self.rsa.isPrime(2))  # documents the bug, not correct math
 
     def test_is_prime_false(self):
         for n in [0, 1, 4, 6, 8, 9, 10, 15, 25]:
@@ -929,7 +921,7 @@ class TestFactorToPrimes(unittest.TestCase):
         def isPrime(n):
             if n < 2:
                 return False
-            for i in range(2, math.ceil(math.sqrt(n)) + 1):
+            for i in range(2, math.isqrt(n) + 1):
                 if n % i == 0:
                     return False
             return True
@@ -969,11 +961,9 @@ class TestFactorToPrimes(unittest.TestCase):
         )
         self.assertIn("prime", result.stdout.lower())
 
-    def test_factors_12_known_bug(self):
-        # Known bug: isPrime() returns False for 2 (ceil(sqrt(2))+1=3, range(2,3)=[2], 2%2=0).
-        # So 2 is never used as a factor. 12 = 3 * 4 in this buggy implementation.
+    def test_factors_12(self):
         factors = self._factorize(12)
-        self.assertEqual(sorted(factors), [3, 4])
+        self.assertEqual(sorted(factors), [2, 2, 3])
 
     def test_factors_60(self):
         factors = self._factorize(60)
