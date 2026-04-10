@@ -1,6 +1,6 @@
 import sys, re, math
 import logging
-from gcdEuclid import gcdEuclid
+from cryptoClasses.gcdEuclid import gcdEuclid
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
