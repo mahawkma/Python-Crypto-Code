@@ -400,11 +400,16 @@ class Blowfish:
         # key with the p-boxes
         key_len = len (key)
         index = 0
+        # Support both bytes (Python 3) and str (Python 2) keys
+        def _key_byte(k, i):
+            b = k[i]
+            return b if isinstance(b, int) else ord(b)
+
         for i in range (len (self.p_boxes)):
-            val = (ord (key[index % key_len]) << 24) + \
-                  (ord (key[(index + 1) % key_len]) << 16) + \
-                  (ord (key[(index + 2) % key_len]) << 8) + \
-                   ord (key[(index + 3) % key_len])
+            val = (_key_byte(key, index % key_len) << 24) + \
+                  (_key_byte(key, (index + 1) % key_len) << 16) + \
+                  (_key_byte(key, (index + 2) % key_len) << 8) + \
+                   _key_byte(key, (index + 3) % key_len)
             self.p_boxes[i] = self.p_boxes[i] ^ val
             index = index + 4
 
@@ -464,20 +469,24 @@ class Blowfish:
         return f
 
 
+    def _b(self, data, i):
+        """Return byte value at index i, supporting both bytes and str."""
+        b = data[i]
+        return b if isinstance(b, int) else ord(b)
+
     def encrypt (self, data):
         if not len (data) == 8:
             raise RuntimeError("Attempted to encrypt data of invalid block length: %s" % len(data))
 
         # Use big endianess since that's what everyone else uses
-        xl = ord (data[3]) | (ord (data[2]) << 8) | (ord (data[1]) << 16) | (ord (data[0]) << 24)
-        xr = ord (data[7]) | (ord (data[6]) << 8) | (ord (data[5]) << 16) | (ord (data[4]) << 24)
+        xl = self._b(data,3) | (self._b(data,2) << 8) | (self._b(data,1) << 16) | (self._b(data,0) << 24)
+        xr = self._b(data,7) | (self._b(data,6) << 8) | (self._b(data,5) << 16) | (self._b(data,4) << 24)
 
         cl, cr = self.cipher (xl, xr, self.ENCRYPT)
-        chars = ''.join ([
-            chr ((cl >> 24) & 0xFF), chr ((cl >> 16) & 0xFF), chr ((cl >> 8) & 0xFF), chr (cl & 0xFF),
-            chr ((cr >> 24) & 0xFF), chr ((cr >> 16) & 0xFF), chr ((cr >> 8) & 0xFF), chr (cr & 0xFF)
+        return bytes([
+            (cl >> 24) & 0xFF, (cl >> 16) & 0xFF, (cl >> 8) & 0xFF, cl & 0xFF,
+            (cr >> 24) & 0xFF, (cr >> 16) & 0xFF, (cr >> 8) & 0xFF, cr & 0xFF
         ])
-        return chars
 
 
     def decrypt (self, data):
@@ -485,15 +494,14 @@ class Blowfish:
             raise RuntimeError("Attempted to encrypt data of invalid block length: %s" % len(data))
 
         # Use big endianess since that's what everyone else uses
-        cl = ord (data[3]) | (ord (data[2]) << 8) | (ord (data[1]) << 16) | (ord (data[0]) << 24)
-        cr = ord (data[7]) | (ord (data[6]) << 8) | (ord (data[5]) << 16) | (ord (data[4]) << 24)
+        cl = self._b(data,3) | (self._b(data,2) << 8) | (self._b(data,1) << 16) | (self._b(data,0) << 24)
+        cr = self._b(data,7) | (self._b(data,6) << 8) | (self._b(data,5) << 16) | (self._b(data,4) << 24)
 
         xl, xr = self.cipher (cl, cr, self.DECRYPT)
-        chars = ''.join ([
-            chr ((xl >> 24) & 0xFF), chr ((xl >> 16) & 0xFF), chr ((xl >> 8) & 0xFF), chr (xl & 0xFF),
-            chr ((xr >> 24) & 0xFF), chr ((xr >> 16) & 0xFF), chr ((xr >> 8) & 0xFF), chr (xr & 0xFF)
+        return bytes([
+            (xl >> 24) & 0xFF, (xl >> 16) & 0xFF, (xl >> 8) & 0xFF, xl & 0xFF,
+            (xr >> 24) & 0xFF, (xr >> 16) & 0xFF, (xr >> 8) & 0xFF, xr & 0xFF
         ])
-        return chars
 
 
     # ==== CBC Mode ====
